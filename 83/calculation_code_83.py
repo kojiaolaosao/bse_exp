@@ -124,16 +124,17 @@ def generate_one_subfield(subfield_id, sub_row, sub_col, global_start_id):
     x_offset = sub_col * L_sub
     y_offset = sub_row * L_sub
 
-    # 9行 → 分3个区域，每个区域3行
+    # Split the 36 x-columns into three scan regions.
+    # The y direction uses y_list_local: 30 rows kept from the 36-row full grid.
     regions = [
-        range(0, 12),  # 区域1
-        range(12, 24),  # 区域2
-        range(24, 36)  # 区域3
+        range(0, 12),  # region 1
+        range(12, 24),  # region 2
+        range(24, 36)  # region 3
     ]
 
-    # 区域1：从下到上
-    # 区域2：从上到下
-    # 区域3：从下到上
+    # Region 1: bottom to top
+    # Region 2: top to bottom
+    # Region 3: bottom to top
     region_scan_dirs = [
         "up",
         "down",
@@ -194,15 +195,15 @@ def generate_wang_pattern_subfield(
     """
     生成第25个子场内部的特殊写入顺序：
 
-    1. 左边区域：27个点，和普通子场第一区域一样
+    1. Left normal area: same 83% y-row sampling as normal subfields.
     2. 中间区域：王字形，保持原来的王字形写入逻辑
-    3. 右边区域：27个点，和普通子场第三区域一样
+    3. Right normal area: same 83% y-row sampling as normal subfields.
 
     注意：
     - 王字形代码本身不改动
-    - 左右两边普通区域仍使用原来 9x9 子场的点位
-    - 左边区域对应普通子场的 range(0, 3)
-    - 右边区域对应普通子场的 range(6, 9)
+    - Left and right normal areas use the 83% normal-subfield y positions.
+    - Left area corresponds to normal-subfield x columns range(0, 12).
+    - Right area corresponds to normal-subfield x columns range(24, 36).
     """
 
     results = []
@@ -215,11 +216,11 @@ def generate_wang_pattern_subfield(
     beam_id_in_subfield = 1
 
     # =========================================================
-    # 1. 左边区域：27个点，和普通子场第一区域一样
+    # 1. Left normal area, same as normal-subfield region 1.
     # =========================================================
-    left_region = range(0, 12)  # 左边三列
+    left_region = range(0, 12)  # left 12 fine-grid columns
 
-    # 普通子场第一区域是 up，所以 y 从下到上
+    # Normal-subfield region 1 scans upward, so y goes from bottom to top.
     for j in range(len(y_list_local)):
         for i in left_region:
             x_local = x_list_local[i]
@@ -236,7 +237,7 @@ def generate_wang_pattern_subfield(
                 "sub_row": sub_row + 1,
                 "sub_col": sub_col + 1,
                 "beam_id_in_subfield": beam_id_in_subfield,
-                "region_type": "left_normal_27",
+                "region_type": "left_normal",
                 "pattern_row": None,
                 "pattern_col": None,
                 "x_global": x_global,
@@ -362,11 +363,11 @@ def generate_wang_pattern_subfield(
         beam_id_in_subfield += 1
 
     # =========================================================
-    # 3. 右边区域：27个点，和普通子场第三区域一样
+    # 3. Right normal area, same as normal-subfield region 3.
     # =========================================================
-    right_region = range(24, 36)  # 右边三列
+    right_region = range(24, 36)  # right 12 fine-grid columns
 
-    # 普通子场第三区域也是 up，所以 y 从下到上
+    # Normal-subfield region 3 also scans upward, so y goes from bottom to top.
     for j in range(len(y_list_local)):
         for i in right_region:
             x_local = x_list_local[i]
@@ -383,7 +384,7 @@ def generate_wang_pattern_subfield(
                 "sub_row": sub_row + 1,
                 "sub_col": sub_col + 1,
                 "beam_id_in_subfield": beam_id_in_subfield,
-                "region_type": "right_normal_27",
+                "region_type": "right_normal",
                 "pattern_row": None,
                 "pattern_col": None,
                 "x_global": x_global,
@@ -440,10 +441,10 @@ def plot_wang_pattern_order(all_results, target_subfield_id=25, save_name="wang_
 
         region_type = r.get("region_type", "")
 
-        if region_type == "left_normal_27":
+        if region_type == "left_normal":
             marker = "s"
             size = 120
-        elif region_type == "right_normal_27":
+        elif region_type == "right_normal":
             marker = "s"
             size = 120
         else:
@@ -481,7 +482,7 @@ def plot_wang_pattern_order(all_results, target_subfield_id=25, save_name="wang_
             )
         )
 
-    ax.set_title("第25个子场：左27点 + 王字形 + 右27点 写入顺序")
+    ax.set_title("Subfield 25: left normal area + Wang pattern + right normal area")
     ax.set_xlabel("x local / um")
     ax.set_ylabel("y local / um")
 
@@ -549,9 +550,10 @@ def generate_ccw_spiral_order_from_top_right(n):
 
 def plot_normal_subfield_order(all_results, target_subfield_id=1, save_name="normal_subfield_order_subfield1.png"):
     """
-    Plot the writing order inside a normal 9x9 subfield.
-    The first 24 subfields share this same internal pattern, so subfield 1 is
-    enough for checking the normal write order.
+    Plot the writing order inside a normal 83% density subfield.
+    The normal subfield uses 36 x-columns and 30 y-rows, with every sixth
+    full-grid y-row left empty. The first 24 subfields share this same
+    internal pattern, so subfield 1 is enough for checking the normal order.
     """
 
     sub_data = [
@@ -612,7 +614,7 @@ def plot_normal_subfield_order(all_results, target_subfield_id=1, save_name="nor
             )
         )
 
-    ax.set_title(f"Normal subfield {target_subfield_id}: 9x9 writing order")
+    ax.set_title(f"Normal subfield {target_subfield_id}: 36x30 writing order")
     ax.set_xlabel("x local / um")
     ax.set_ylabel("y local / um")
 
@@ -627,7 +629,7 @@ def plot_normal_subfield_order(all_results, target_subfield_id=1, save_name="nor
 # 单个子场参数
 # =====================
 L_sub = 9.0  # 单个子场尺寸 (um)
-N = 18  # 单个子场 9x9
+N = 18  # Half of the 36-point full grid in one subfield.
 beam_L = 0.25  # 束斑尺寸 (um)
 half_L = beam_L / 2
 beta = 10.0  # 背散射半径参数 (um)
@@ -644,7 +646,8 @@ x_center = L_total / 2 - 0.125  # 2059
 y_center = L_total / 2 - 0.125  # 2059
 
 # =====================
-# 单个子场内部束斑中心
+# Beam centers inside one subfield.
+# 83% density keeps all 36 x-columns and leaves every sixth y-row empty.
 # =====================
 x_list_local = np.linspace(half_L, L_sub - half_L, 2 * N)
 y_list_full = np.linspace(half_L, L_sub - half_L, 2 * N)
