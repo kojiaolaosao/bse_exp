@@ -647,7 +647,7 @@ y_center = L_total / 2 - 0.125  # 2059
 # 单个子场内部束斑中心
 # =====================
 x_list_local = np.linspace(half_L, L_sub - half_L, 2 * N)
-y_list_local = np.linspace(half_L, L_sub - beam_L - half_L, N)
+y_list_local = np.linspace(half_L, L_sub - half_L, N)
 
 # =====================
 # 主计算
