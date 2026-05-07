@@ -148,9 +148,9 @@ def generate_one_subfield(subfield_id, sub_row, sub_col, global_start_id):
         direction = region_scan_dirs[region_idx]
 
         if direction == "up":
-            y_order = range(2 * N)
+            y_order = range(len(y_list_local))
         else:
-            y_order = reversed(range(2 * N))
+            y_order = reversed(range(len(y_list_local)))
 
         for j in y_order:
             for i in rows:
@@ -220,7 +220,7 @@ def generate_wang_pattern_subfield(
     left_region = range(0, 12)  # 左边三列
 
     # 普通子场第一区域是 up，所以 y 从下到上
-    for j in range(2*N):
+    for j in range(len(y_list_local)):
         for i in left_region:
             x_local = x_list_local[i]
             y_local = y_list_local[j]
@@ -367,7 +367,7 @@ def generate_wang_pattern_subfield(
     right_region = range(24, 36)  # 右边三列
 
     # 普通子场第三区域也是 up，所以 y 从下到上
-    for j in range(2*N):
+    for j in range(len(y_list_local)):
         for i in right_region:
             x_local = x_list_local[i]
             y_local = y_list_local[j]
@@ -647,7 +647,12 @@ y_center = L_total / 2 - 0.125  # 2059
 # 单个子场内部束斑中心
 # =====================
 x_list_local = np.linspace(half_L, L_sub - half_L, 2 * N)
-y_list_local = np.linspace(half_L, L_sub - half_L, 2 * N)
+y_list_full = np.linspace(half_L, L_sub - half_L, 2 * N)
+y_list_local = np.array([
+    y
+    for idx, y in enumerate(y_list_full)
+    if (idx + 1) % 6 != 0
+])
 
 # =====================
 # 主计算
